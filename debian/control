@@ -1,0 +1,21 @@
+Source: vmfs-tools
+Priority: extra
+Section: otherosfs
+Maintainer: Mike Hommey <glandium@debian.org>
+Build-Depends: debhelper (>= 7.0.50~), pkg-config, uuid-dev, libreadline-dev | libreadline5-dev, libfuse-dev, asciidoc, xsltproc, docbook-xsl
+Standards-Version: 3.8.4.0
+
+Package: vmfs-tools
+Architecture: any
+Section: otherosfs
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Tools to access VMFS filesystems
+ VMFS is a clustered filesystem designed to store virtual machine disks for
+ VMware ESX or ESXi Server hosts. This set of tools allows to access these
+ filesystems from some other non ESX/ESXi host for e.g. maintenance tasks.
+ .
+ Only read access is available at the moment, but write access is under
+ works. Multiple extents are supported.
+ .
+ The VMFS can be accessed with a command line tool or mounted through a
+ userspace filesystem (FUSE-based).

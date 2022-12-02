@@ -1,0 +1,361 @@
+debugvmfs(8)
+============
+
+NAME
+----
+debugvmfs - VMFS file system debugger
+
+
+SYNOPSIS
+--------
+*debugvmfs* 'VOLUME'... 'COMMAND' [ 'OPTIONS' ]
+
+
+DESCRIPTION
+-----------
+The *debugvmfs* program allows to display various informations about VMFS
+file systems, and to access data within the file systems.
+
+The 'VOLUME' to be opened can be either a block device or an image file.
+When the VMFS spreads accross several extents, all extents must be given.
+
+Please note that most commands are still likely to change in future versions.
+
+SPECIFYING FILES
+----------------
+Some commands take a 'filespec' as an argument. A 'filespec' may take either
+of the following forms:
+
+- A path name, relative to the root of the filesystem if it starts with \'/',
+  or relative to the current working directory otherwise (interactive mode
+  only).
+
+- An inode number, enclosed between angle brackets, e.g. \'<4>',
+  \'<0x1400004>'
+
+COMMANDS
+--------
+*cat* 'filespec' [ ... ]::
+Outputs the content of the given files from the VMFS.
+
+*ls* [ *-l* ] 'filespec'::
+Lists files contained at the given location within the VMFS.
++
+With *-l*, gives some more information, much like the output from *ls*(1)
+when given the *-l* option.
+
+*truncate* 'filespec' 'length'::
+Truncate the file to the specified length. R/W support must be enabled.
+
+*chmod* 'filespec' 'mode'::
+Change file permissions to the given mode.
+
+*df*::
+Outputs information about file system size.
+
+*get_file_block* 'filespec' 'position'::
+Get file block corresponding to position in the specified file.
+
+*check_vol_bitmaps*::
+Checks volume bitmaps consistency.
+
+*show_heartbeats*::
+Outputs active heartbeats on the file system.
+
+*read_block* 'block_id' [ ... ]::
+Outputs content within the specified block_id in binary
+
+*get_block_status* 'block_id'::
+Get status (allocated or free) of the specified block_id.
+
+*alloc_block_fixed* 'block_id'::
+Allocate the specified block_id. R/W support must be enabled.
+
+*alloc_block* 'block_type'::
+Allocate a block of the specified type. R/W support must be enabled.
++
+Allowed block types are: 1 (File Block), 2 (Sub-Block), 3 (Pointer Block) 
+and 4 (File Descriptor / Inode).
+
+*free_block* 'block_id'::
+Free the specified block_id. R/W support must be enabled.
++
+Warning: can cause damage since no heartbeat is used at this time and a block
+used by a file can be freed.
+
+*show*::
+Display value(s) of the given variable. See the *VARIABLES* section for more
+details. When no variable is given, it lists the top-level properties.
+
+*shell*::
+Starts an interactive session. All of the above commands can be executed from
+within the interactive session.
++
+The current working directory can be changed with the *cd* command,
+followed by a filespec.
++
+The following output redirections are supported within the shell:
++
+- 'cmd' > 'output'
++
+Puts the output of 'cmd' in the 'output' file.
++
+- 'cmd' >> 'output'
++
+Appends the output of 'cmd' to the 'output' file.
++
+- 'cmd' | 'external command'
++
+Sends the output of 'cmd' to the input of 'external command'.
+The 'external command' itself can contain output redirection.
++
+Examples:
++
+** read_block 0x00000681 | less
+** cat /.fdc.sf | hexdump -C
+** cat /.fdc.sf | hexdump -C > /tmp/fdc.hex
+** cat /.fdc.sf | hexdump -C | less
+
+
+VARIABLES
+---------
+
+Variables in debugvmfs represent structures on the filesystem. The currently
+supported top-level variables are the following:
+
+- *vol_version*
+
+- *version*
+
+- *label*
+
+- *mode*
+
+- *uuid*
+
+- *ctime*
+
+- *block_size*
+
+- *subblock_size*
+
+- *fdc_header_size*
+
+- *fdc_bitmap_count*
+
+- *fbb*
+
+- *fdc*
+
+- *pbc*
+
+- *sbc*
+
+- *fs*
+
+- *lvm*
+
+- *blkid*['blk']
+
+- *dirent*["'path'"]
+
+- *inode*["'filespec'"]
+
+The *vol_version*, *version*, *label*, *mode*, *uuid*, *ctime*, *block_size*,
+*subblock_size*, *fdc_header_size*, and *fdc_bitmap_count* properties are
+low-level information about the filesystem.
+
+The *fbb*, *fdc*, *pbc* and *sbc* variables are bitmaps. Running them through
+the *show* command will display all the bitmaps header fields. Each of these
+fields can also be displayed individually:
+
+- 'bitmap'.*items_per_bitmap_entry*
+
+- 'bitmap'.*bmp_entries_per_area*
+
+- 'bitmap'.*hdr_size*
+
+- 'bitmap'.*data_size*
+
+- 'bitmap'.*area_size*
+
+- 'bitmap'.*area_count*
+
+- 'bitmap'.*total_items*
+
+- 'bitmap'.*used_items*
+
+- 'bitmap'.*free_items*
+
+- 'bitmap'.*entry*['n']
+
+e.g. to display the data size of the fdc bitmap, type *show fdc.data_size*.
+
+Each 'bitmap'.*entry*['n'] (where 0 ≤ 'n' < 'bitmap'.*bmp_entries_per_area*
+* 'bitmap'.*area_count*) contains information about each entry in the bitmap.
+The available fields are:
+
+- 'bitmap'.*entry*['n'].id
+
+- 'bitmap'.*entry*['n'].total
+
+- 'bitmap'.*entry*['n'].free
+
+- 'bitmap'.*entry*['n'].ffree
+
+- 'bitmap'.*entry*['n'].mdh
+
+- 'bitmap'.*entry*['n'].item['m']
+
+The 'bitmap'.*entry*['n'].mdh is a metadata header. See further below for
+more details about metadata headers.
+
+Each 'bitmap'.*entry*['n'].item['m'] (where 0 ≤ 'm' <
+'bitmap'.*items_per_bitmap_entry*) contains information about a given item
+in the given entry. The available fields are:
+
+- 'bitmap'.*entry*['n'].item['m'].used
+
+- 'bitmap'.*entry*['n'].item['m'].dump
+
+The *pbc* bitmap has an additional field:
+
+- *pbc*.*entry*['n'].item['m'].blocks
+
+The *lvm* variable contains low-level information about the physical and
+ logical volumes. The available fields are:
+
+- *lvm*.*uuid*
+
+- *lvm*.*size*
+
+- *lvm*.*blocks*
+
+- *lvm*.*num_extents*
+
+- *lvm*.*extent*['n']
+
+Each *lvm*.*extent*['n'] (where 0 ≤ 'n' < *lvm*.*num_extents*) contains
+low-level information about the physical volumes. The available fields are:
+
+- *lvm*.*extent*['n'].device
+
+- *lvm*.*extent*['n'].uuid
+
+- *lvm*.*extent*['n'].lun
+
+- *lvm*.*extent*['n'].version
+
+- *lvm*.*extent*['n'].name
+
+- *lvm*.*extent*['n'].size
+
+- *lvm*.*extent*['n'].num_segments
+
+- *lvm*.*extent*['n'].first_segment
+
+- *lvm*.*extent*['n'].last_segment
+
+Each *blkid*['blk'] (where 'blk' is a block id) contains information on
+the given block id. The available fields are:
+
+- *blkid*['blk'].item
+
+- *blkid*['blk'].flags
+
+Each *dirent*['path'] (where 'path' is a path relative to the current
+directory in the shell or / outside the shell) contains information on
+the directory entry corresponding to the given path. The available fields
+are:
+
+- *dirent*["'path'"].type
+
+- *dirent*["'path'"].block_id
+
+- *dirent*["'path'"].record_id
+
+- *dirent*["'path'"].name
+
+Each *inode*['filespec'] contains information on the inode corresponding
+to the given filespec. The available fields are:
+
+- *inode*["'filespec'"].id
+
+- *inode*["'filespec'"].id2
+
+- *inode*["'filespec'"].nlink
+
+- *inode*["'filespec'"].type
+
+- *inode*["'filespec'"].flags
+
+- *inode*["'filespec'"].size
+
+- *inode*["'filespec'"].blk_size
+
+- *inode*["'filespec'"].blk_count
+
+- *inode*["'filespec'"].uid
+
+- *inode*["'filespec'"].gid
+
+- *inode*["'filespec'"].mode
+
+- *inode*["'filespec'"].zla
+
+- *inode*["'filespec'"].tbz
+
+- *inode*["'filespec'"].cow
+
+- *inode*["'filespec'"].atime
+
+- *inode*["'filespec'"].mtime
+
+- *inode*["'filespec'"].ctime
+
+- *inode*["'filespec'"].rdm_id
+
+- *inode*["'filespec'"].mdh
+
+- *inode*["'filespec'"].blocks
+
+Metadata headers are being used in several places, such as
+'bitmap'.*entry*['n'].mdh and *inode*["'filespec'"].mdh. They mostly contain
+information about clustered accesses to metadata on the filesystem.
+ The available fields are:
+
+- 'mdh'.magic
+
+- 'mdh'.pos
+
+- 'mdh'.hb_pos
+
+- 'mdh'.hb_lock
+
+- 'mdh'.hb_uuid
+
+- 'mdh'.hb_seq
+
+- 'mdh'.obj_seq
+
+- 'mdh'.mtime
+
+Variable values can also be used in expressions using square brackets to
+use the variable value as an index. For example:
+
+- *blkid*[*inode*["'filespec'"].id]
+
+Enclosing a variable name with parentheses will use that variable value as
+a variable name. For example:
+
+- (*blkid*['blk'].item).status
+
+
+AUTHORS
+-------
+include::../AUTHORS[]
+
+
+SEE ALSO
+--------
+vmfs-fuse(8)

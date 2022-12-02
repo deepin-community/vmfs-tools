@@ -1,0 +1,48 @@
+vmfs-tools (0.2.5-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Mike Hommey <glandium@debian.org>  Sun, 25 Mar 2012 10:47:13 +0200
+
+vmfs-tools (0.2.1-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/rules: Minimize rules now that upstream makefile supports
+    everything needed.
+  * debian/control: Bump Standard-Version to 3.8.4.0: No changes required.
+  * debian/copyright: Update copyright years.
+  * GNUmakefile: Avoid creating the config.cache file when dh_auto_clean runs
+    the realclean target.
+
+ -- Mike Hommey <glandium@debian.org>  Mon, 05 Apr 2010 17:47:10 +0200
+
+vmfs-tools (0.2.0-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/control:
+    - Build-depend on libreadline-dev before libreadline5-dev.
+      Closes: #553889.
+    - Build-depend on a debhelper version that supports dh overrides.
+    - Bump Standard-Version to 3.8.3.0: No changes required.
+  * debian/rules: Workaround for inexistent upstream distclean rule.
+
+ -- Mike Hommey <glandium@debian.org>  Mon, 23 Nov 2009 18:31:48 +0100
+
+vmfs-tools (0.1.2-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Fixes various corruptions when reading data. Closes: #532557.
+
+ -- Mike Hommey <glandium@debian.org>  Thu, 11 Jun 2009 22:53:15 +0200
+
+vmfs-tools (0.1.1-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Mike Hommey <glandium@debian.org>  Tue, 26 May 2009 20:24:00 +0200
+
+vmfs-tools (0.1.0-1) unstable; urgency=low
+
+  * Initial release. (Closes: #530022)
+
+ -- Mike Hommey <glandium@debian.org>  Sun, 24 May 2009 11:32:52 +0200

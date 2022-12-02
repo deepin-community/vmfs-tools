@@ -1,0 +1,14 @@
+Format-Specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=48
+Name: vmfs-tools
+Source: http://glandium.org/projects/vmfs-tools/
+
+Copyright: 2009, Christophe Fillot <cf@utc.fr>
+           2009,2010, Mike Hommey <mh@glandium.org>
+License: GPL-2+
+ On Debian systems the full text of the GNU General Public
+ License can be found in the `/usr/share/common-licenses/GPL-2'
+ file.
+
+Files: debian/*
+Copyright: 2009,2010, Mike Hommey <glandium@debian.org>
+License: GPL-2+
